@@ -101,10 +101,16 @@ df_macro = pd.DataFrame({
 })
 
 # 2. Vision 2040 Targets
+metrics = ["GDP (USD bn)", "Per Capita Income (USD)", "Population Below Poverty (%)", 
+           "Agriculture % of GDP", "Industry % of GDP", "Manufactured Goods in Exports (%)",
+           "Agri Labour Force (%)", "Industry Labour Force (%)", "Patents Registered/yr"]
+baseline = [17, 506, 24.5, 53.1, 9.5, 4.2, 65.6, 7.6, 3]
+target = [580.5, 9500, 5, 10.4, 31.4, 50, 31, 26, 6000]
+
 df_vision = pd.DataFrame({
-    "Indicator": ["GDP (USD bn)", "Per Capita Income (USD)", "Population Below Poverty (%)", "Agriculture % of GDP", "Industry % of GDP", "Manufactured Goods in Exports (%)", "Agri Labour Force (%)", "Industry Labour Force (%)", "Patents Registered/yr"],
-    "Baseline_2010": [17, 506, 24.5, 53.1, 9.5, 4.2, 65.6, 7.6, 3],
-    "Target_2040": [580.5, 9500, 5, 10.4, 31.4, 50, 31, 26, 6000]
+    "Indicator": metrics,
+    "Baseline_2010": baseline,
+    "Target_2040": target
 })
 
 # 3. GDP Trajectory
@@ -126,29 +132,55 @@ df_struct = pd.DataFrame({
 
 # 5. Sector Programmes
 prog_data = []
-# Agro
 prog_data.extend([("Agro-Industrialisation", ind, b, t) for ind, b, t in zip(
     ["Agri Growth Rate (%)", "Export Value (USD mn)", "Import Value (USD mn)", "Food Security (%)", "Agri Financing Share (%)", "Annual Jobs (000s)"],
     [5.1, 2500, 1096, 71, 11.3, 0], [8.0, 4800, 600, 85, 15.0, 60])])
-# Tourism
 prog_data.extend([("Tourism Development", ind, b, t) for ind, b, t in zip(
     ["Forex Earnings (USD bn)", "Length of Stay (nights)", "Spend per Tourist (USD)", "Satisfaction Score (%)", "Domestic Exp (UGX bn)", "Programme Perf (%)"],
     [1.0, 7.6, 1550, 79, 3675, 57.7], [10.0, 14.0, 3100, 85, 7350, 70.0])])
-# Extractives
 prog_data.extend([("Extractives Industry", ind, b, t) for ind, b, t in zip(
     ["Storage Capacity (mn L)", "Oil/Gas Revenue (UGX bn)", "Ugandans Employed (000s)", "Mineral Value Add Inv (USD bn)", "Oil/Gas Dev Inv (USD bn)", "Programme Perf (%)"],
     [99.1, 62.98, 5, 0.8, 0.8, 65], [150, 265, 50, 2.0, 2.0, 85])])
-# Private Sector
 prog_data.extend([("Private Sector Development", ind, b, t) for ind, b, t in zip(
     ["Business Lifespan (yrs)", "Informal Sector Size (%)", "Export Value (USD bn)", "Public Contracts to Locals (%)"],
     [6, 54.8, 7.9, 64], [10, 41.5, 10.3, 70])])
-# STI
 prog_data.extend([("Innovation / STI", ind, b, t) for ind, b, t in zip(
     ["STI Investment (USD mn)", "IDEs Created", "IDEs with Export Market", "STI GDP Contrib (USD bn)", "STI Human Capital (000s)"],
     [50, 0, 0, 1, 50], [500, 50, 10, 10, 500])])
-
 df_programmes = pd.DataFrame(prog_data, columns=["Programme", "Indicator", "Baseline", "Target"])
 
+# 6. ATMS Revenue Targets
+df_atms = pd.DataFrame({
+    "Sector": ["Agro-based Manufacturing", "Tourism Inflows", "Mineral-based Mfg (incl. Oil & Gas)", "STI / Knowledge Economy"],
+    "Revenue_bn": [20, 50, 25, 5],
+    "Label": ["USD 20bn+", "USD 50bn+", "USD 25bn+", "Multiplier"]
+})
+
+# 7. Lending Rates
+df_rates = pd.DataFrame({
+    "Institution": ["Commercial Banks", "Tier 4 Inst", "Money Lenders", "DFIs (e.g. UDB)"],
+    "Current_Rate": [18.0, 48.0, 120.0, 12.0],
+    "Target_Rate": [14.9, 38.0, 60.0, 8.0]
+})
+
+# 8. High-Impact Projects
+df_projects = pd.DataFrame({
+    "Priority_Area": ["Integrated Transport", "Sustainable Energy", "Human Capital", 
+                      "Knowledge Economy (STI)", "Sustainable Extractives", "Agro-Industrialisation", 
+                      "Cultural & Sports", "Urban & Housing", "Tourism Dev", 
+                      "Private Sector Dev", "Monetization of Economy", "Manufacturing"],
+    "Projects_Count": [15, 13, 9, 6, 5, 4, 3, 2, 3, 1, 1, 1]
+})
+
+# 9. Timeline
+df_timeline = pd.DataFrame([
+    dict(Task="NDP I", Start="2010-07-01", Finish="2015-06-30", Status="Completed"),
+    dict(Task="NDP II", Start="2015-07-01", Finish="2020-06-30", Status="Completed"),
+    dict(Task="NDP III", Start="2020-07-01", Finish="2025-06-30", Status="Running"),
+    dict(Task="NDP IV", Start="2025-07-01", Finish="2030-06-30", Status="Running"),
+    dict(Task="NDP V", Start="2030-07-01", Finish="2035-06-30", Status="Not Yet"),
+    dict(Task="NDP VI", Start="2035-07-01", Finish="2040-06-30", Status="Not Yet")
+])
 
 # --- Helpers ---
 def apply_chart_layout(fig):
@@ -169,6 +201,9 @@ def generate_excel():
         df_gdp_traj.to_excel(writer, sheet_name='GDP Trajectory', index=False)
         df_struct.to_excel(writer, sheet_name='Economic Shift', index=False)
         df_programmes.to_excel(writer, sheet_name='Sector Programmes', index=False)
+        df_atms.to_excel(writer, sheet_name='ATMS Targets', index=False)
+        df_rates.to_excel(writer, sheet_name='Lending Rates', index=False)
+        df_projects.to_excel(writer, sheet_name='High Impact Projects', index=False)
     return output.getvalue()
 
 @st.cache_data
@@ -259,13 +294,44 @@ with tab1:
         fig2.update_layout(yaxis_title="Value", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
         st.plotly_chart(apply_chart_layout(fig2), use_container_width=True)
 
+    st.markdown("---")
+    
+    st.markdown("#### Vision 2040 Targets: Baseline (2010) vs 2040 Goals")
+    # Display the 9 Vision 2040 metrics
+    rows = [st.columns(3) for _ in range(3)]
+    for i, row in df_vision.iterrows():
+        col = rows[i // 3][i % 3]
+        with col:
+            m = row["Indicator"]
+            b = row["Baseline_2010"]
+            t = row["Target_2040"]
+            df_v = pd.DataFrame({"Period": ["Baseline (2010)", "Target (2040)"], "Value": [b, t]})
+            lower_is_better = m in ["Population Below Poverty (%)", "Agriculture % of GDP", "Agri Labour Force (%)"]
+            
+            c1 = COLORS["AMBER"] if not lower_is_better else COLORS["GREEN"]
+            c2 = COLORS["GREEN"] if not lower_is_better else COLORS["RED"]
+            
+            fig_v = px.bar(df_v, x="Period", y="Value", text="Value", color="Period",
+                           color_discrete_map={"Baseline (2010)": c1, "Target (2040)": c2})
+            fig_v.update_traces(textposition='outside')
+            fig_v.update_layout(title=m, title_font_size=13, showlegend=False, height=250, margin=dict(t=30, b=0, l=0, r=0))
+            st.plotly_chart(apply_chart_layout(fig_v), use_container_width=True)
+            
+    st.markdown("---")
+    st.markdown("#### NDP Timeline (2010 - 2040)")
+    color_map = {"Completed": COLORS['GREEN'], "Running": COLORS['AMBER'], "Not Yet": COLORS['GRAY']}
+    fig9 = px.timeline(df_timeline, x_start="Start", x_end="Finish", y="Task", color="Status", color_discrete_map=color_map)
+    fig9.update_yaxes(autorange="reversed")
+    fig9.update_layout(height=300)
+    st.plotly_chart(apply_chart_layout(fig9), use_container_width=True)
+
+
 with tab2:
     st.markdown("#### Sector Programmes")
     st.info("💡 Data in this section is filtered by the Programme(s) Slicer in the sidebar.")
     
     if selected_progs:
         filtered_df = df_programmes[df_programmes["Programme"].isin(selected_progs)]
-        
         for prog in selected_progs:
             prog_df = filtered_df[filtered_df["Programme"] == prog]
             df_melt = prog_df.melt(id_vars=["Indicator"], value_vars=["Baseline", "Target"], var_name="Period", value_name="Value")
@@ -279,13 +345,30 @@ with tab2:
             st.markdown("---")
     else:
         st.warning("Please select at least one programme from the sidebar.")
+        
+    col3, col4 = st.columns(2)
+    with col3:
+        st.markdown("#### NDPIV High-Impact Projects")
+        df_p_sorted = df_projects.sort_values("Projects_Count", ascending=True)
+        fig8 = go.Figure(go.Bar(x=df_p_sorted["Projects_Count"], y=df_p_sorted["Priority_Area"], orientation='h', marker_color=COLORS['TEAL'], text=df_p_sorted["Projects_Count"], textposition='outside'))
+        fig8.update_layout(height=450, margin=dict(l=0, r=0, t=10, b=10))
+        st.plotly_chart(apply_chart_layout(fig8), use_container_width=True)
+        
+    with col4:
+        st.markdown("#### Lending Rate Reduction Targets")
+        fig7 = go.Figure()
+        fig7.add_trace(go.Bar(x=df_rates["Institution"], y=df_rates["Current_Rate"], name='Current (FY23/24)', marker_color=COLORS['RED']))
+        fig7.add_trace(go.Bar(x=df_rates["Institution"], y=df_rates["Target_Rate"], name='Target (FY29/30)', marker_color=COLORS['GREEN']))
+        fig7.update_layout(barmode='group', yaxis_title="Interest Rate (%)")
+        st.plotly_chart(apply_chart_layout(fig7), use_container_width=True)
+
 
 with tab3:
     st.markdown("#### Macro Context & Structural Transformation")
     st.info("💡 Data in this section represents national targets and is not filtered by the Slicer.")
     
-    col1, col2 = st.columns(2)
-    with col1:
+    col5, col6 = st.columns(2)
+    with col5:
         st.markdown("**Economic Structure Shift (GDP %)**")
         fig4 = go.Figure()
         fig4.add_trace(go.Bar(x=df_struct["Sector"], y=df_struct["GDP_2010_pct"], name='2010 (Baseline)', marker_color=COLORS['NAVY']))
@@ -293,10 +376,21 @@ with tab3:
         fig4.update_layout(barmode='group')
         st.plotly_chart(apply_chart_layout(fig4), use_container_width=True)
 
-    with col2:
+    with col6:
         st.markdown("**Labour Force Shift (%)**")
         fig5 = go.Figure()
         fig5.add_trace(go.Bar(x=df_struct["Sector"], y=df_struct["Labour_2010_pct"], name='2010 (Baseline)', marker_color=COLORS['NAVY']))
         fig5.add_trace(go.Bar(x=df_struct["Sector"], y=df_struct["Labour_2040_pct"], name='2040 (Target)', marker_color=COLORS['GREEN']))
         fig5.update_layout(barmode='group')
         st.plotly_chart(apply_chart_layout(fig5), use_container_width=True)
+
+    st.markdown("---")
+    
+    st.markdown("#### ATMS: Strategic Priority Areas & Revenue Targets")
+    st.markdown("*Combined target: USD 95bn+ — anchoring the 10-Fold Growth Strategy*")
+    fig10 = go.Figure(data=[
+        go.Bar(x=df_atms["Sector"], y=df_atms["Revenue_bn"], text=df_atms["Label"], textposition='outside',
+               marker_color=[COLORS["GREEN"], COLORS["TEAL"], COLORS["AMBER"], COLORS["PURPLE"]])
+    ])
+    fig10.update_layout(yaxis_title="Target Revenue (USD Billions)", height=450)
+    st.plotly_chart(apply_chart_layout(fig10), use_container_width=True)
